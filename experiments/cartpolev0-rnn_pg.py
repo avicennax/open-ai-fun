@@ -9,6 +9,8 @@ import gym
 import numpy as np
 import tensorflow as tf
 
+import sirang.sirang as sirang
+
 import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -18,7 +20,7 @@ import rnn_pg
 from utils import empty_lists, load_yaml
 
 Episode = collections.namedtuple("Episode", ['episode_length', 'loss', 'actions'])
-
+experiment_saver = sirang.Sirang()
 
 def plot_episode_lengths(episode_stats):
     plt.figure(figsize=(8, 6))
@@ -26,11 +28,16 @@ def plot_episode_lengths(episode_stats):
     for i, stats in enumerate(episode_stats):
         loss_t = [np.squeeze(e.loss) for e in stats]
         len_t = [e.episode_length for e in stats]
-        plt.plot(range(len(len_t)), len_t, 'o', label='seed {}'.format(i));
+        plt.plot(range(len(len_t)), len_t, label='seed {}'.format(i));
     plt.legend()
     plt.show()
 
 
+def median_episode_length(stats):
+    return np.median([e.episode_length for e in stats])
+
+
+@experiment_saver.dstore(db_name='Cartpole-v0-training-runs', store=['graph', 'env', 'policy'], inversion=True, store_return=True)
 def train(
     env, policy, graph=tf.get_default_graph(), n_episodes=700, gamma=0.78, n_updates=1, load_checkpoint=False, 
     tensorflow_log_dir="/tmp/model/log", tensorflow_checkpoint_path="/tmp/model.ckpt", save_checkpoint=100, **kwargs):
@@ -76,7 +83,8 @@ def train(
             actions, states, returns = empty_lists(3)
        
         print("Session saved at: {}".format(save_path))
-        return episode_stats
+
+        return {'median-episode-length': median_episode_length(episode_stats)}, episode_stats
 
 
 if __name__ == "__main__":
@@ -88,7 +96,10 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())
     if args['config'] is not None:
-        args.update(load_yaml(args['config']))
+        params = load_yaml(args['config'])
+
+    print args
+    experiment_id = experiment_saver.store_meta(db_name="CartPole-v0-rnn_pg", doc=args)
 
     env = gym.make('CartPole-v0')
 
@@ -97,11 +108,14 @@ if __name__ == "__main__":
         tf_graph = tf.Graph()
         with tf_graph.as_default():
             policy = rnn_pg.RNNPolicy(
-                hidden_dim=args['hidden_dim'], env_state_size=4, action_space_dim=2,
-                learning_rate=args['learning_rate'], activation=tf.nn.relu, scope_name="model-{}".format(i))
-        args.update({'tensorflow_log_dir': "/tmp/model/log/seed-{}".format(i), 
-                     'tensorflow_checkpoint_path': "/tmp/model/model-seed-{}.ckpt".format(i),
-                     'scope_name': 'model-seed-{}'.format(i)})
-        episode_stats.append(train(env=env, policy=policy, graph=tf_graph, **args))
+                hidden_dim=params['hidden_dim'], env_state_size=4, action_space_dim=2,
+                learning_rate=params['learning_rate'], activation=tf.nn.relu, scope_name="model-{}".format(i))
+
+            params.update({'tensorflow_log_dir': "/tmp/model/log/seed-{}".format(i), 
+                         'tensorflow_checkpoint_path': "/tmp/model/model-seed-{}.ckpt".format(i),
+                         'scope_name': 'model-seed-{}'.format(i),
+                         '_id': "{id}-{seed}".format(id=experiment_id, seed=i)})
+
+            episode_stats.append(train(env=env, policy=policy, graph=tf_graph, **params))
 
     plot_episode_lengths(episode_stats)
