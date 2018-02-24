@@ -4,6 +4,6 @@ n_episodes: 500
 gamma: 0.8
 n_updates: 1
 load_checkpoint: False
-tensorflow_log_dir: '/tmp/model/log'
-tensorflow_checkpoint_path: '/tmp/model.ckpt'
+tensorflow_log_dir: './logs'
+tensorflow_checkpoint_path: './models/cp_rnn-pg-model.ckpt'
 save_checkpoint: 100
