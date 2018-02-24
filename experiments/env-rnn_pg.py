@@ -20,8 +20,8 @@ import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
-# Ensure parent directory is can be imported
-sys.path.append(Path(__file__).resolve().parents[1])
+# Ensure parent directory is on PATH
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
 import rnn_pg
 from utils import empty_lists, load_yaml
 
