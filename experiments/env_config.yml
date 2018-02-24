@@ -1,0 +1,14 @@
+env: 'CartPole-v0'
+
+hidden_dim: 7
+learning_rate: 0.005
+n_episodes: 500
+gamma: 0.80
+n_updates: 1
+
+load_checkpoint: False
+tensorflow_log_dir: './logs'
+tensorflow_checkpoint_dir: './models'
+save_checkpoint: 100
+
+generate_plot: True
