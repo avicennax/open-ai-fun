@@ -2,8 +2,19 @@ import numpy as np
 import tensorflow as tf
 
 class RNNPolicy():
-    def __init__(self, hidden_dim, env_state_size, action_space_dim, learning_rate=0.01, 
-        activation=tf.nn.elu, scope_name='policy-network'):
+    def __init__(self, hidden_dim, env_state_size, action_space_dim, load_graph=False, learning_rate=0.01, 
+        activation=tf.nn.elu, scope_name='policy-network', graph=None, **kwargs):
+    
+        if load_graph:
+            self._load_graph()
+        else:
+            self._build_graph(hidden_dim, env_state_size, action_space_dim, learning_rate, activation, scope_name)
+
+        # sample action via passed p
+        self.sample_action = lambda p: np.random.choice(range(action_space_dim), p=p)
+
+    def _build_graph(self, hidden_dim, env_state_size, action_space_dim, learning_rate=0.01, 
+        activation=tf.nn.elu, scope_name='policy-network', **kwargs):
         with tf.variable_scope(scope_name) as scope:
             # Size variables
             with tf.variable_scope('dimensions'):
@@ -58,9 +69,9 @@ class RNNPolicy():
                 tf.summary.tensor_summary('rnn-states', self.rnn_states)
                 tf.summary.scalar('loss', self.loss)
                 self.summary_op = tf.summary.merge_all()
-        
-        # sample action via passed p
-        self.sample_action = lambda p: np.random.choice(range(action_space_dim), p=p)
+
+    def _load_graph(self):
+        pass
     
     def action_p(self, env_state, step_rnn=True, sess=None):
         sess = sess or tf.get_default_session()

@@ -1,9 +1,17 @@
+env: 'CartPole-v0'
+
 hidden_dim: 7
 learning_rate: 0.005
 n_episodes: 500
-gamma: 0.8
+gamma: 0.78
 n_updates: 1
+
 load_checkpoint: False
 tensorflow_log_dir: './logs'
-tensorflow_checkpoint_path: './models/cp_rnn-pg-model.ckpt'
+tensorflow_checkpoint_dir: './models'
 save_checkpoint: 100
+
+generate_plot: True
+reward_func: punish_last_action
+reward_func_params:
+  cost: 30
