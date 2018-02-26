@@ -60,7 +60,7 @@ class RNNPolicy():
 
             with tf.variable_scope('train'):
                 self.loss = tf.tensordot(-tf.log(self.obs_action_probabilities), self.returns, 1)
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+                self.optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate)
                 self.train_op = self.optimizer.minimize(
                     self.loss, global_step=tf.train.get_global_step())
 

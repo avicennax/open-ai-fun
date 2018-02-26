@@ -147,7 +147,7 @@ if __name__ == "__main__":
             episode_stats.append(train(env=env, policy=policy, graph=tf_graph, **params))
 
     if params['generate_plot']:
-        viz.plot_episode(episode_stats, params['env_name'], 'episode-length')
+        viz.plot_episode(episode_stats, params['env_name'], 'episode_length')
 
     # Open IPython session for interactive exploration
     embed()

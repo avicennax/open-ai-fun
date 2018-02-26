@@ -23,7 +23,10 @@ def run(meta_graph_path, n_episodes=5, pause=2, **params):
         scope_name=re.search("^.*(model-run-\d+)", path).group(1))
 
     with tf.Session() as sess:
+        # Future option would be to load metagraph and pass it to the policy, this would
+        # make sampling very easy, but training would be very difficult.
         importer = tf.train.Saver()
+        # Assumes were TF version > 0.11.
         importer.restore(sess, op.splitext(meta_graph_path)[0])
 
         # Start running episodes

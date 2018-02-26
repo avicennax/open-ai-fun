@@ -1,3 +1,4 @@
+import re
 import numpy as np
 
 import matplotlib as mpl
@@ -7,9 +8,9 @@ import matplotlib.pyplot as plt
 
 def plot_episode(episode_stats, env_name, ylabel):
     plt.figure(figsize=(8, 6))
-    plt.title('{env}: episode lengths'.format(env=env_name))
+    plt.title('{env}: {label}'.format(env=env_name, label=re.sub('[_-]', ' ', ylabel))
 
-    episode_lengths = np.array([[e.episode_length for e in stats] for stats in episode_stats])
+    episode_lengths = np.array([[getattr(e, ylabel) for e in stats] for stats in episode_stats])
     trial_num = episode_lengths.shape[1]
     p_top = np.percentile(episode_lengths, q=75, axis=0)
     p_bottom = np.percentile(episode_lengths, q=25, axis=0)
