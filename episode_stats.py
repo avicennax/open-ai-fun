@@ -1,3 +1,3 @@
 import collections
 
-Episode = collections.namedtuple("Episode", ['episode_length', 'loss', 'actions'])
+Episode = collections.namedtuple("Episode", ['episode_length', 'average_return', 'actions'])

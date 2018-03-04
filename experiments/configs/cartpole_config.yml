@@ -1,10 +1,12 @@
 env: 'CartPole-v0'
 
 hidden_dim: 7
-learning_rate: 0.005
-n_episodes: 350
+learning_rate: 0.001
+n_episodes: 2000
 gamma: 0.8
-n_updates: 1
+n_updates: 100
+episodes_per_update: 100
+
 
 load_checkpoint: False
 tensorflow_log_dir: './logs'

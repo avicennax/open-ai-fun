@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def plot_episode(episode_stats, env_name, ylabel):
     plt.figure(figsize=(8, 6))
-    plt.title('{env}: {label}'.format(env=env_name, label=re.sub('[_-]', ' ', ylabel))
+    plt.title('{env}: {label}'.format(env=env_name, label=re.sub('[_-]', ' ', ylabel)))
 
     episode_lengths = np.array([[getattr(e, ylabel) for e in stats] for stats in episode_stats])
     trial_num = episode_lengths.shape[1]
