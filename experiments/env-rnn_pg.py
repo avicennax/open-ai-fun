@@ -33,12 +33,12 @@ experiment_saver = sirang.Sirang()
     inversion=True, store_return=True)
 def train(
     env, policy, graph=tf.get_default_graph(), n_episodes=700, gamma=0.78, n_updates=1,
-    episode_target_length=np.inf, target_threshold_count=np.inf, load_checkpoint=False, 
+    episodes_per_update=5, episode_target_length=np.inf, target_threshold_count=np.inf, 
     tensorflow_log_dir="./logs/log", tensorflow_checkpoint_path="./models/model.ckpt", 
-    load_checkpoint_path=None, save_checkpoint=100, verbose=1, reward_func_params=None,
-    reward_func='get_returns', **kwargs):
+    load_checkpoint=False, load_checkpoint_path=None, save_checkpoint=100, verbose=1, 
+    reward_func_params=None, reward_func='get_returns', **kwargs):
 
-    states, actions, rewards, episode_stats, running_episode_length = utils.empty_lists(5)
+    all_states, all_actions, all_returns, episode_stats, running_episode_length = utils.empty_lists(5)
     if not reward_func_params:
         reward_func_params = {}
 
@@ -54,6 +54,7 @@ def train(
         
         # Start running episodes
         for k in range(n_episodes):
+            states, actions, rewards = utils.empty_lists(3)
             state = env.reset()
             policy.initialize_rnn()
             done = False
@@ -70,22 +71,28 @@ def train(
             returns = getattr(rewards_funcs, reward_func)(
                 **dict(reward_func_params, **{'rewards': rewards, 'gamma': gamma}))
 
-            # Update network
-            for _ in range(n_updates):
-                summary, loss = policy.update_policy(states, returns, actions)
+            # Update state, action and returns collectors.
+            all_states.append(states)
+            all_actions.append(actions)
+            all_returns.append(returns)
 
             # Collect episode statistics
             running_episode_length.append(len(returns))
-            episode_stats.append(Episode(len(returns), np.squeeze(loss), actions))
+            episode_stats.append(Episode(len(returns), np.mean(returns), actions))
             print("Episode {} - Length : {}".format(k, len(returns)))
-            actions, states, returns = utils.empty_lists(3)
+
+            # Update network
+            if k % episodes_per_update == 0 and k > 0:
+                for _ in range(n_updates):
+                    summary, loss = policy.update_policy(all_states, all_returns, all_actions)
+                all_states, all_returns, all_actions = utils.empty_lists(3)
 
             # Check if early stopping condition is met
             terminate_condition = utils.sliding_window_performance(
                 running_episode_length, episode_target_length, target_threshold_count)
 
             # Save model if checkpoint reached or early stopping triggered
-            if k % save_checkpoint == 0 or terminate_condition:
+            if (k % save_checkpoint == 0  and k > 0) or terminate_condition:
                 save_path = saver.save(sess, tensorflow_checkpoint_path, global_step=k)
                 writer.add_summary(summary, global_step=k)
                 print("Session saved at: {}".format(save_path))
