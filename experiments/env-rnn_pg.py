@@ -125,6 +125,7 @@ if __name__ == "__main__":
     # Set up sirang meta-data store
     if 'env' in params:
         params['env_name'] = params.pop('env')
+        experiment_saver.initialize_connection()
         experiment_id = experiment_saver.store_meta(db_name="{env}-rnn_pg".format(
             env=params['env_name']), doc=args)
     else:
