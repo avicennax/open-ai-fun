@@ -6,9 +6,8 @@ import sys
 import gym
 import numpy as np
 
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[0]))
-from utils import empty_lists
-from reward_funcs import get_returns
+from oarl.utils import empty_lists
+from oarl.rewards_funcs import get_returns
 
 
 class CEMAgent(object):

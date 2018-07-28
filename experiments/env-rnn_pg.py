@@ -14,29 +14,31 @@ import numpy as np
 import tensorflow as tf
 from IPython import embed
 
-import sirang.sirang as sirang
+import sirang
 
-# Ensure parent directory is on PATH
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
-import rnn_pg
-import rewards_funcs
-import viz
-import utils
-from episode_stats import Episode
+from oarl import (
+    rnn_pg,
+    rewards_funcs,
+    viz,
+    utils
+)
+from oarl.episode_stats import Episode
 
 # Defining experiment/model hyperparameter DB connector
 experiment_saver = sirang.Sirang()
 
 
 @experiment_saver.dstore(
-    db_name='env-training-runs', store=['graph', 'env', 'policy', 'verbose'], 
-    inversion=True, store_return=True)
+    db_name='env-training-runs', collection_name='rnn-pg',
+    keep=['graph', 'env', 'policy', 'verbose'], inversion=True, store_return=True)
 def train(
-    env, policy, graph=tf.get_default_graph(), n_episodes=700, gamma=0.78, n_updates=1,
-    episodes_per_update=5, episode_target_length=np.inf, target_threshold_count=np.inf, 
-    tensorflow_log_dir="./logs/log", tensorflow_checkpoint_path="./models/model.ckpt", 
-    load_checkpoint=False, load_checkpoint_path=None, save_checkpoint=100, verbose=1, 
-    reward_func_params=None, reward_func='get_returns', **kwargs):
+    env, policy, graph=tf.get_default_graph(), n_episodes=700, 
+    gamma=0.78, n_updates=1,  episodes_per_update=5, 
+    episode_target_length=np.inf, target_threshold_count=np.inf, 
+    tensorflow_log_dir="./logs/log", 
+    tensorflow_checkpoint_path="./models/model.ckpt", 
+    load_checkpoint=False, load_checkpoint_path=None, save_checkpoint=100, 
+    verbose=1, reward_func_params=None, reward_func='get_returns', **kwargs):
 
     all_states, all_actions, all_returns, episode_stats, running_episode_length = utils.empty_lists(5)
     if not reward_func_params:
@@ -84,28 +86,34 @@ def train(
             # Update network
             if k % episodes_per_update == 0 and k > 0:
                 for _ in range(n_updates):
-                    summary, loss = policy.update_policy(all_states, all_returns, all_actions)
+                    summary, loss = policy.update_policy(
+                        all_states, all_returns, all_actions)
                 all_states, all_returns, all_actions = utils.empty_lists(3)
 
             # Check if early stopping condition is met
             terminate_condition = utils.sliding_window_performance(
-                running_episode_length, episode_target_length, target_threshold_count)
+                running_episode_length, episode_target_length, 
+                target_threshold_count)
 
             # Save model if checkpoint reached or early stopping triggered
-            if (k % save_checkpoint == 0  and k > 0) or terminate_condition:
-                save_path = saver.save(sess, tensorflow_checkpoint_path, global_step=k)
+            if (k % save_checkpoint == 0 and k > 0) or terminate_condition:
+                save_path = saver.save(
+                    sess, tensorflow_checkpoint_path, global_step=k)
                 writer.add_summary(summary, global_step=k)
                 print("Session saved at: {}".format(save_path))
                 if terminate_condition:
                     print("Training termination condition met; training aborted.")
                     break
        
-    return {'median-episode-length': utils.median_episode_length(episode_stats)}, episode_stats
+    median_episode_length = {
+        'median-episode-length': utils.median_episode_length(episode_stats)}, 
+    return median_episode_length, episode_stats
 
 
 if __name__ == "__main__":
     # Pass in configuration file and seed num (random starts).
-    parser = argparse.ArgumentParser(description='Train PG-RNN on user specified task.')
+    parser = argparse.ArgumentParser(
+        description='Train PG-RNN on user specified task.')
     parser.add_argument('--config',
         help='Configuration file contains model and experiment hyperparameters')
     parser.add_argument('--seed-num', default=5, type=int,
@@ -113,8 +121,8 @@ if __name__ == "__main__":
     parser.add_argument('--description', default="None supplied.", type=str,
         help='User supplied description to stored in MongoDB experiment document')
 
-    # Load configuration file specifiying model and experiment hyperparameters as well
-    # open-ai Environment to use.
+    # Load configuration file specifiying model and experiment 
+    #   hyperparameters as well open-ai Environment to use.
     args = vars(parser.parse_args())
     # Note: argparsers sets unpassed flags to None.
     if args['config'] is not None:
@@ -125,11 +133,12 @@ if __name__ == "__main__":
     # Set up sirang meta-data store
     if 'env' in params:
         params['env_name'] = params.pop('env')
-        experiment_saver.initialize_connection()
-        experiment_id = experiment_saver.store_meta(db_name="{env}-rnn_pg".format(
-            env=params['env_name']), doc=args)
+        experiment_id = experiment_saver.store_meta(
+            db_name='env-training-runs',
+            collection_name="{env}-rnn_pg".format(env=params['env_name']), doc=args)
     else:
-        raise Exception("'env' parameter not set in {config}".format(config=args['config']))
+        raise Exception("'env' parameter not set in {config}".format(
+            config=args['config']))
     # Make environment
     env = gym.make(params['env_name'])
 
@@ -139,8 +148,10 @@ if __name__ == "__main__":
         tf_graph = tf.Graph()
         with tf_graph.as_default():
             policy = rnn_pg.RNNPolicy(
-                hidden_dim=params['hidden_dim'], env_state_size=len(env.observation_space.low), 
-                action_space_dim=env.action_space.n, learning_rate=params['learning_rate'], 
+                hidden_dim=params['hidden_dim'], env_state_size=len(
+                    env.observation_space.low), 
+                action_space_dim=env.action_space.n, 
+                learning_rate=params['learning_rate'], 
                 activation=tf.nn.relu, scope_name="model-run-{}".format(i))
 
             # Load up training run specific parameters to stored in MongoDB
@@ -148,11 +159,14 @@ if __name__ == "__main__":
                 {'tensorflow_log_path': op.join(
                     params.get('tensorflow_log_dir', './logs'), "run-{}".format(i)), 
                  'tensorflow_checkpoint_path': op.join(
-                    params.get('tensorflow_checkpoint_dir', './models'), "model-run-{}.ckpt".format(i)),
+                    params.get(
+                        'tensorflow_checkpoint_dir', './models'), 
+                    "model-run-{}.ckpt".format(i)),
                  'scope_name': 'model-seed-{}'.format(i),
                  '_id': "{id}-{seed}".format(id=experiment_id, seed=i)})
 
-            episode_stats.append(train(env=env, policy=policy, graph=tf_graph, **params))
+            episode_stats.append(
+                train(env=env, policy=policy, graph=tf_graph, **params))
 
     if params['generate_plot']:
         viz.plot_episode(episode_stats, params['env_name'], 'episode_length')

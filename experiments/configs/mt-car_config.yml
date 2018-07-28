@@ -1,0 +1,14 @@
+env: 'MountainCar-v0'
+
+hidden_dim: 5
+learning_rate: 0.005
+n_episodes: 100
+gamma: 0.78
+n_updates: 1
+
+load_checkpoint: False
+tensorflow_log_dir: './logs'
+tensorflow_checkpoint_dir: './models'
+save_checkpoint: 100
+
+generate_plot: True

@@ -9,28 +9,27 @@ import numpy as np
 import tensorflow as tf
 import gym
 
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[0]))
-import rnn_pg
-import utils
+from . import rnn_pg
+from . import utils
 
 
 def run(meta_graph_path, n_episodes=5, pause=2, **params):
     env = gym.make(params['env'])
     # Assumes that policy was generated via rnn_pg.py
     policy = rnn_pg.RNNPolicy(
-        hidden_dim=params['hidden_dim'], env_state_size=len(env.observation_space.low), 
+        hidden_dim=params['hidden_dim'], 
+        env_state_size=len(env.observation_space.low), 
         action_space_dim=env.action_space.n, activation=tf.nn.relu, 
-        scope_name=re.search("^.*(model-run-\d+)", path).group(1))
+        scope_name=re.search("^.*(model-run-\d+)", meta_graph_path).group(1))
 
     with tf.Session() as sess:
-        # Future option would be to load metagraph and pass it to the policy, this would
-        # make sampling very easy, but training would be very difficult.
+        # Future option would be to load metagraph and pass it to the policy, 
+        # this would make sampling very easy, but training would be very difficult.
         importer = tf.train.Saver()
         # Assumes were TF version > 0.11.
         importer.restore(sess, op.splitext(meta_graph_path)[0])
 
         # Start running episodes
-        env.render()
         for k in range(n_episodes):
             state = env.reset()
             policy.initialize_rnn(sess=sess)
@@ -40,13 +39,15 @@ def run(meta_graph_path, n_episodes=5, pause=2, **params):
                 action_p = policy.action_p(state, sess=sess)
                 action = policy.sample_action(action_p)
                 state, reward, done, _ = env.step(action)
+                env.render()
 
             time.sleep(pause)
 
 
 if __name__ == "__main__":
     # Pass in configuration file and seed num (random starts).
-    parser = argparse.ArgumentParser(description='Run PG-RNN on user specified task.')
+    parser = argparse.ArgumentParser(
+        description='Run PG-RNN on user specified task.')
     parser.add_argument('--config',
         help='Configuration file contains model parameters')
     parser.add_argument('--meta-graph-path',
