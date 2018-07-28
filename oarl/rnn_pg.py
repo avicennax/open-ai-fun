@@ -4,10 +4,7 @@ import pathlib
 import numpy as np
 import tensorflow as tf
 
-# Ensure parent directory is on PATH
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[0]))
-
-import utils
+from . import utils
 
 
 class RNNPolicy():
