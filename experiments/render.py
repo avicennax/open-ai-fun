@@ -9,8 +9,8 @@ import numpy as np
 import tensorflow as tf
 import gym
 
-from . import rnn_pg
-from . import utils
+from oarl import rnn_pg
+from oarl import utils
 
 
 def run(meta_graph_path, n_episodes=5, pause=2, **params):
