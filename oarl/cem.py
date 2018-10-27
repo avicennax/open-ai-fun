@@ -33,7 +33,7 @@ class CEM_Model(object):
         pass
 
 
-class CEM_Mean(object):
+class CEM_Mean(CEM_Model):
     """
     Vanilla CEM using Gaussian population generator with
     identity covariance.
@@ -49,7 +49,7 @@ class CEM_Mean(object):
         return np.random.randn(pop_size, self.param_shape) + self.mu
 
 
-class CEM_MeanWeighted(object):
+class CEM_MeanWeighted(CEM_Model):
     """
     Variant of CEM using weighted samples; with being calculated
     using the estimated expected returns of the population
@@ -69,7 +69,7 @@ class CEM_MeanWeighted(object):
         return np.random.randn(pop_size, self.param_shape) + self.mu
 
 
-class CEM_MeanCov(object):
+class CEM_MeanCov(CEM_Model):
     """
     Variant of CEM using updates to covariance matrix.
     """
@@ -86,7 +86,7 @@ class CEM_MeanCov(object):
         return np.random.multivariate_normal(self.mu, self.cov, pop_size)
 
 
-class CMA_ES(object):
+class CMA_ES(CEM_Model):
     """
     CMA-ES; Covariance Matrix Adapation Evolution Strategy:
         A variant on CEM thats updates the population generator's
