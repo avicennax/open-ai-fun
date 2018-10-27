@@ -3,13 +3,15 @@ import argparse
 import pathlib
 import sys
 
-import gym
 import numpy as np
 
+import gym
+from tensorboardX import SummaryWriter
+
 from oarl.cem import (
-    CEM_Mean, 
+    CEM_Mean,
     CMA_ES,
-    CEMLogitAgent, 
+    CEMLogitAgent,
     get_fittest,
     train_agent
 )
@@ -33,6 +35,9 @@ if __name__ == "__main__":
     else:
         raise Exception("config file parameter must be passed")
 
+    # Configure tensorboardX
+    writer = SummaryWriter()
+
     # Experiment/ES parameters
     gamma = params['gamma']
     n_episodes = params['n-episodes']
@@ -54,14 +59,15 @@ if __name__ == "__main__":
             utilities.append(
                 train_agent(CEMLogitAgent(theta), env, n_episodes, gamma)
             )
-        
+
         # Fit a Gaussian parameter generator with unit variance
         fittest, _ = get_fittest(thetas, np.array(utilities))
         pop_model.update_generator(fittest, _)
-        
+
         # Record population fittest
         pop_mean_util.append(np.mean(utilities))
         utilities = []
+        writer.add_scalar('Population Mean Returns', pop_mean_util[-1], k)
         print("iteration {k} complete -- mean utility: {u}".format(
             k=k, u=pop_mean_util[-1]))
 
@@ -69,3 +75,5 @@ if __name__ == "__main__":
         thetas = pop_model.generate_population(pop_size)
 
 
+    writer.close()
+    writer.export_scalars_to_json("./all_scalars.json")
