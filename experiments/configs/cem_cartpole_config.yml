@@ -1,0 +1,6 @@
+env: 'CartPole-v0'
+
+n-episodes: 100
+gamma: 0.8
+pop-size: 100
+iterations: 15
