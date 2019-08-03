@@ -1,8 +1,6 @@
 # coding: utf-8
+
 from abc import ABCMeta, abstractmethod
-import argparse
-import pathlib
-import sys
 
 import numpy as np
 
@@ -38,6 +36,7 @@ class CEM_Mean(CEM_Model):
     Vanilla CEM using Gaussian population generator with
     identity covariance.
     """
+
     def __init__(self, param_shape):
         self.mu = np.random.randn(param_shape)
         self.param_shape = param_shape
@@ -55,6 +54,7 @@ class CEM_MeanWeighted(CEM_Model):
     using the estimated expected returns of the population
     survivors.
     """
+
     def __init__(self, param_shape, lamb=1e-3):
         self.mu = np.random.randn(param_shape)
         self.param_shape = param_shape
@@ -73,6 +73,7 @@ class CEM_MeanCov(CEM_Model):
     """
     Variant of CEM using updates to covariance matrix.
     """
+
     def __init__(self, param_shape):
         self.mu = np.random.randn(param_shape)
         self.cov = np.random.exponential(size=(param_shape, param_shape))
