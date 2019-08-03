@@ -1,8 +1,8 @@
 *.DS_Store
 *.pyc
-experiments/**/models
-experiments/**/logs
-experiments/**/runs
+legacy/experiments/**/models
+legacy/experiments/**/logs
+legacy/experiments/**/runs
 
 !*/.gitkeep
 
