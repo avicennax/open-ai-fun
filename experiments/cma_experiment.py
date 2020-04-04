@@ -22,12 +22,12 @@ class CEMExperiment(FlowSpec):
 
     @step
     def start(self):
-        """Initialize experiment parament"""
+        """Initialize experiment parameters"""
 
         # Load experiment configuration parameters into memory
         self.params = yaml.safe_load(self.config)
 
-        # TOOD: Fix Tensorflow writer
+        # TODO: Fix Tensorflow writer
         # Define Tensorflow writer
         # self.writer = tf.summary.FileWriter(".")
 
@@ -36,6 +36,7 @@ class CEMExperiment(FlowSpec):
     @step
     def run(self):
         """Execute CMA Experiment"""
+        
         # Experiment/ES parameters
         gamma = self.params["gamma"]
         n_episodes = self.params["n-episodes"]
