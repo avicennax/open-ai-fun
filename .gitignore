@@ -6,3 +6,12 @@ legacy/experiments/**/runs
 
 !*/.gitkeep
 
+**/.vscode
+**/*.egg-info
+notebooks/
+**/.mypy_cache
+**/.metaflow
+
+TODO
+
+

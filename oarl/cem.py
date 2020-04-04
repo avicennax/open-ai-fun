@@ -143,7 +143,7 @@ class CEMLogitAgent(CEMAgent):
             return 1
 
 
-def train_agent(agent, env, n_episodes, gamma):
+def train_agent(agent, env, n_episodes, gamma, episode_callback=None):
     states, rewards, actions, utilities = empty_lists(4)
     for k in range(n_episodes):
         state = env.reset()
@@ -157,6 +157,12 @@ def train_agent(agent, env, n_episodes, gamma):
             actions.append(action)
 
         utilities.append(np.sum(get_returns(rewards, gamma)))
+        # Call callback on episode metrics
+        if episode_callback:
+            episode_callback(rewards, actions, states)
+
+        rewards, actions, states = empty_lists(3)
+
     return np.mean(utilities)
 
 
