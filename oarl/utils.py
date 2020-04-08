@@ -1,3 +1,4 @@
+from collections import defaultdict
 import yaml
 
 import numpy as np
@@ -22,3 +23,17 @@ def sliding_window_performance(scores, threshold, count_threshold, metric=np.mea
     else:
         scores.pop(0)
         return metric(scores) > threshold
+
+
+class NestedDefaultDictionary:
+    def __init__(self, nested_type=str):
+        self._dict = defaultdict(lambda: defaultdict(str))
+
+    def __getstate__(self):
+        return {'_dict': dict(self._dict)}
+
+    def __setitem__(self, k, v):
+        self._dict[k] = v
+
+    def __getitem__(self, k):
+        return self._dict[k]

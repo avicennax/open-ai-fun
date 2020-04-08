@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from abc import ABCMeta, abstractmethod
+from copy import deepcopy
 
 import numpy as np
 
@@ -156,11 +157,13 @@ def train_agent(agent, env, n_episodes, gamma, episode_callback=None):
             rewards.append(reward)
             actions.append(action)
 
-        utilities.append(np.sum(get_returns(rewards, gamma)))
         # Call callback on episode metrics
         if episode_callback:
-            episode_callback(rewards, actions, states)
+            episode_callback(
+                *[deepcopy(it) for it in (rewards, actions, states)]
+            )
 
+        utilities.append(np.sum(get_returns(rewards, gamma)))
         rewards, actions, states = empty_lists(3)
 
     return np.mean(utilities)
