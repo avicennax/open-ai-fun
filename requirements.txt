@@ -9,5 +9,5 @@ numpy
 matplotlib
 metaflow
 pyyaml
-tensorflow==2.1
+tensorflow==2.6.4
 git+git://github.com/openai/baselines@tf2#egg
